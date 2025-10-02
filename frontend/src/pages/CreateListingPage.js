@@ -148,12 +148,15 @@ const CreateListingPage = () => {
     }
 
     setLoading(true);
+    setServerError('');
 
     try {
       const formDataToSend = new FormData();
       formDataToSend.append('titulo', formData.titulo);
       formDataToSend.append('descripcion', formData.descripcion);
       formDataToSend.append('precio', formData.precio);
+      formDataToSend.append('codigoPostal', formData.codigoPostal);
+      formDataToSend.append('colonia', formData.colonia);
       formDataToSend.append('estado', formData.estado);
       formDataToSend.append('municipio', formData.municipio);
       
@@ -171,10 +174,19 @@ const CreateListingPage = () => {
       navigate('/my-listings');
     } catch (error) {
       console.error('Error creating listing:', error);
-      showError(
-        error.response?.data?.error?.message || 
-        'Error al crear el anuncio. Por favor intenta de nuevo.'
-      );
+      const errorMessage = error.response?.data?.error?.message || 
+        'Error al crear el anuncio. Por favor intenta de nuevo.';
+      
+      showError(errorMessage);
+      setServerError(errorMessage);
+      
+      // Si hay un campo específico con error, marcarlo
+      if (error.response?.data?.error?.field) {
+        setErrors(prev => ({
+          ...prev,
+          [error.response.data.error.field]: errorMessage
+        }));
+      }
     } finally {
       setLoading(false);
     }

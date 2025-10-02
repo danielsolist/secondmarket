@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Listing = require('../models/Listing');
+const Colonia = require('../models/Colonia');
 const auth = require('../middleware/auth');
 const { upload, handleMulterError } = require('../middleware/upload');
 const {
@@ -17,10 +18,18 @@ const {
  */
 router.get('/', async (req, res) => {
   try {
-    const { estado, municipio, search, page = 1, limit = 20 } = req.query;
+    const { estado, municipio, colonia, codigoPostal, search, page = 1, limit = 20 } = req.query;
 
     // Construir query de filtrado
     const query = { activo: true };
+
+    if (codigoPostal) {
+      query.codigoPostal = codigoPostal;
+    }
+
+    if (colonia) {
+      query.colonia = colonia;
+    }
 
     if (estado) {
       query.estado = estado;
@@ -43,7 +52,7 @@ router.get('/', async (req, res) => {
     // Ejecutar query con populate y paginación
     const listings = await Listing.find(query)
       .populate('usuario', 'nombre email')
-      .populate('estado', 'nombre')
+      .populate('colonia', 'nombre codigoPostal').populate('estado', 'nombre')
       .populate('municipio', 'nombre')
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -89,7 +98,7 @@ router.post(
   validateCreateListing,
   async (req, res) => {
     try {
-      const { titulo, descripcion, precio, estado, municipio } = req.body;
+      const { titulo, descripcion, precio, codigoPostal, colonia, estado, municipio } = req.body;
 
       // Validar que se hayan subido imágenes
       if (!req.files || req.files.length === 0) {
@@ -97,7 +106,45 @@ router.post(
           success: false,
           error: {
             message: 'Debe subir al menos una imagen',
-            code: 'NO_IMAGES'
+            code: 'NO_IMAGES',
+            field: 'imagenes'
+          }
+        });
+      }
+
+      // Validar código postal
+      if (!codigoPostal || codigoPostal.length !== 5) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            message: 'El código postal debe tener 5 dígitos',
+            code: 'INVALID_CODIGO_POSTAL',
+            field: 'codigoPostal'
+          }
+        });
+      }
+
+      // Verificar que la colonia existe
+      const coloniaExists = await Colonia.findById(colonia);
+      if (!coloniaExists) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            message: 'La colonia seleccionada no existe',
+            code: 'INVALID_COLONIA',
+            field: 'colonia'
+          }
+        });
+      }
+
+      // Verificar que la colonia pertenece al municipio y estado
+      if (coloniaExists.municipio.toString() !== municipio || coloniaExists.estado.toString() !== estado) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            message: 'La colonia no pertenece al municipio y estado seleccionados',
+            code: 'COLONIA_MISMATCH',
+            field: 'colonia'
           }
         });
       }
@@ -111,6 +158,8 @@ router.post(
         descripcion,
         precio,
         imagenes,
+        codigoPostal,
+        colonia,
         estado,
         municipio,
         usuario: req.user._id
@@ -119,6 +168,7 @@ router.post(
       // Poblar referencias para la respuesta
       await listing.populate([
         { path: 'usuario', select: 'nombre email' },
+        { path: 'colonia', select: 'nombre codigoPostal' },
         { path: 'estado', select: 'nombre' },
         { path: 'municipio', select: 'nombre' }
       ]);
@@ -131,11 +181,26 @@ router.post(
       });
     } catch (error) {
       console.error('Error al crear anuncio:', error);
+      
+      // Manejar errores de validación de Mongoose
+      if (error.name === 'ValidationError') {
+        const messages = Object.values(error.errors).map(err => err.message);
+        return res.status(400).json({
+          success: false,
+          error: {
+            message: messages.join(', '),
+            code: 'VALIDATION_ERROR',
+            details: error.errors
+          }
+        });
+      }
+      
       res.status(500).json({
         success: false,
         error: {
           message: 'Error al crear anuncio',
-          code: 'CREATE_LISTING_ERROR'
+          code: 'CREATE_LISTING_ERROR',
+          details: error.message
         }
       });
     }
@@ -175,7 +240,7 @@ router.get(
       // Ejecutar query con populate y paginación
       const listings = await Listing.find(query)
         .populate('usuario', 'nombre email')
-        .populate('estado', 'nombre')
+        .populate('colonia', 'nombre codigoPostal').populate('estado', 'nombre')
         .populate('municipio', 'nombre')
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -233,7 +298,7 @@ router.get('/:id', async (req, res) => {
     // Buscar anuncio y poblar referencias
     const listing = await Listing.findById(id)
       .populate('usuario', 'nombre email telefono')
-      .populate('estado', 'nombre')
+      .populate('colonia', 'nombre codigoPostal').populate('estado', 'nombre')
       .populate('municipio', 'nombre');
 
     if (!listing) {

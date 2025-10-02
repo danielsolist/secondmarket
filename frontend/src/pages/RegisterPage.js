@@ -30,10 +30,22 @@ const RegisterPage = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    // Validación especial para teléfono
+    if (name === 'telefono') {
+      // Solo permitir números y limitar a 13 caracteres
+      const telefonoLimpio = value.replace(/\D/g, '').slice(0, 13);
+      setFormData(prev => ({
+        ...prev,
+        [name]: telefonoLimpio
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+    
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -115,6 +127,7 @@ const RegisterPage = () => {
     }
 
     setLoading(true);
+    setServerError('');
 
     const { confirmPassword, ...registerData } = formData;
 
@@ -124,7 +137,19 @@ const RegisterPage = () => {
       showSuccess('¡Cuenta creada exitosamente!');
       navigate('/');
     } else {
-      showError(result.error || 'Error al crear la cuenta');
+      // Mostrar error específico del servidor
+      const errorMessage = result.error?.message || result.error || 'Error al crear la cuenta';
+      showError(errorMessage);
+      setServerError(errorMessage);
+      
+      // Si hay un campo específico con error, marcarlo
+      if (result.error?.field) {
+        setErrors(prev => ({
+          ...prev,
+          [result.error.field]: errorMessage
+        }));
+      }
+      
       setLoading(false);
     }
   };

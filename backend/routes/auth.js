@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Estado = require('../models/Estado');
 const Municipio = require('../models/Municipio');
+const Colonia = require('../models/Colonia');
 const auth = require('../middleware/auth');
 const { validateRegister, validateLogin } = require('../middleware/validators/userValidator');
 
@@ -14,7 +15,7 @@ const { validateRegister, validateLogin } = require('../middleware/validators/us
  */
 router.post('/register', validateRegister, async (req, res) => {
   try {
-    const { email, password, nombre, telefono, estado, municipio } = req.body;
+    const { email, password, nombre, telefono, codigoPostal, colonia, estado, municipio } = req.body;
 
     // Verificar si el usuario ya existe
     const existingUser = await User.findOne({ email });
@@ -23,7 +24,33 @@ router.post('/register', validateRegister, async (req, res) => {
         success: false,
         error: {
           message: 'El correo electrónico ya está registrado',
-          code: 'EMAIL_EXISTS'
+          code: 'EMAIL_EXISTS',
+          field: 'email'
+        }
+      });
+    }
+
+    // Verificar código postal
+    if (!codigoPostal || codigoPostal.length !== 5) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'El código postal debe tener 5 dígitos',
+          code: 'INVALID_CODIGO_POSTAL',
+          field: 'codigoPostal'
+        }
+      });
+    }
+
+    // Verificar que la colonia existe
+    const coloniaExists = await Colonia.findById(colonia);
+    if (!coloniaExists) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'La colonia seleccionada no existe',
+          code: 'INVALID_COLONIA',
+          field: 'colonia'
         }
       });
     }
@@ -35,7 +62,8 @@ router.post('/register', validateRegister, async (req, res) => {
         success: false,
         error: {
           message: 'El estado seleccionado no existe',
-          code: 'INVALID_ESTADO'
+          code: 'INVALID_ESTADO',
+          field: 'estado'
         }
       });
     }
@@ -47,7 +75,32 @@ router.post('/register', validateRegister, async (req, res) => {
         success: false,
         error: {
           message: 'El municipio seleccionado no existe o no pertenece al estado',
-          code: 'INVALID_MUNICIPIO'
+          code: 'INVALID_MUNICIPIO',
+          field: 'municipio'
+        }
+      });
+    }
+
+    // Verificar que la colonia pertenece al municipio y estado
+    if (coloniaExists.municipio.toString() !== municipio || coloniaExists.estado.toString() !== estado) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'La colonia no pertenece al municipio y estado seleccionados',
+          code: 'COLONIA_MISMATCH',
+          field: 'colonia'
+        }
+      });
+    }
+
+    // Validar teléfono si se proporciona
+    if (telefono && !/^\d{10,13}$/.test(telefono)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'El teléfono debe contener entre 10 y 13 dígitos',
+          code: 'INVALID_TELEFONO',
+          field: 'telefono'
         }
       });
     }
@@ -58,6 +111,8 @@ router.post('/register', validateRegister, async (req, res) => {
       password,
       nombre,
       telefono,
+      codigoPostal,
+      colonia,
       estado,
       municipio
     });
@@ -74,6 +129,7 @@ router.post('/register', validateRegister, async (req, res) => {
     // Retornar usuario sin contraseña
     const userResponse = await User.findById(user._id)
       .select('-password')
+      .populate('colonia', 'nombre codigoPostal')
       .populate('estado', 'nombre')
       .populate('municipio', 'nombre');
 
@@ -86,11 +142,26 @@ router.post('/register', validateRegister, async (req, res) => {
     });
   } catch (error) {
     console.error('Error en registro:', error);
+    
+    // Manejar errores de validación de Mongoose
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: messages.join(', '),
+          code: 'VALIDATION_ERROR',
+          details: error.errors
+        }
+      });
+    }
+    
     res.status(500).json({
       success: false,
       error: {
         message: 'Error al registrar usuario',
-        code: 'REGISTER_ERROR'
+        code: 'REGISTER_ERROR',
+        details: error.message
       }
     });
   }
@@ -150,6 +221,7 @@ router.post('/login', validateLogin, async (req, res) => {
     // Retornar usuario sin contraseña
     const userResponse = await User.findById(user._id)
       .select('-password')
+      .populate('colonia', 'nombre codigoPostal')
       .populate('estado', 'nombre')
       .populate('municipio', 'nombre');
 
@@ -166,7 +238,8 @@ router.post('/login', validateLogin, async (req, res) => {
       success: false,
       error: {
         message: 'Error al iniciar sesión',
-        code: 'LOGIN_ERROR'
+        code: 'LOGIN_ERROR',
+        details: error.message
       }
     });
   }
@@ -182,6 +255,7 @@ router.get('/me', auth, async (req, res) => {
     // El usuario ya está adjunto al request por el middleware auth
     const user = await User.findById(req.user._id)
       .select('-password')
+      .populate('colonia', 'nombre codigoPostal')
       .populate('estado', 'nombre')
       .populate('municipio', 'nombre');
 
@@ -207,7 +281,8 @@ router.get('/me', auth, async (req, res) => {
       success: false,
       error: {
         message: 'Error al obtener usuario',
-        code: 'GET_USER_ERROR'
+        code: 'GET_USER_ERROR',
+        details: error.message
       }
     });
   }
