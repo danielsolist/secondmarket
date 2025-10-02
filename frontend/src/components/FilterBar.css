@@ -1,0 +1,112 @@
+.filter-bar {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-md);
+  margin-bottom: var(--spacing-xl);
+  animation: slideDown var(--transition-slow);
+}
+
+.filter-bar-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: var(--spacing-md);
+  align-items: end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.filter-group label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-neutral-700);
+}
+
+.filter-input,
+.filter-select {
+  padding: 0.75rem var(--spacing-md);
+  border: 1px solid var(--color-neutral-300);
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+  background: var(--color-white);
+  min-height: 44px;
+}
+
+.filter-input:hover,
+.filter-select:hover {
+  border-color: var(--color-neutral-400);
+}
+
+.filter-input:focus,
+.filter-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.filter-select:disabled {
+  background: var(--color-neutral-100);
+  cursor: not-allowed;
+  color: var(--color-neutral-400);
+}
+
+.filter-clear-btn {
+  padding: 0.75rem var(--spacing-lg);
+  background: var(--color-error);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition-base), transform var(--transition-base);
+  white-space: nowrap;
+  height: fit-content;
+  min-height: 44px;
+}
+
+.filter-clear-btn:hover {
+  background: #DC2626;
+}
+
+.filter-clear-btn:active {
+  transform: scale(0.98);
+}
+
+@media (max-width: 1024px) {
+  .filter-bar-content {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .filter-group:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .filter-clear-btn {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .filter-bar {
+    padding: var(--spacing-md);
+  }
+
+  .filter-bar-content {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-group:first-child {
+    grid-column: 1;
+  }
+
+  .filter-clear-btn {
+    grid-column: 1;
+    width: 100%;
+  }
+}

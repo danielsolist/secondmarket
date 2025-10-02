@@ -1,0 +1,127 @@
+.my-listings-page {
+  padding: var(--spacing-xl) var(--spacing-md);
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: fadeIn var(--transition-slow);
+}
+
+.my-listings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-xl);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.my-listings-title {
+  font-size: var(--text-3xl);
+  font-weight: bold;
+  color: var(--color-neutral-800);
+  margin: 0;
+}
+
+.my-listings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.my-listing-card {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.my-listing-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.my-listing-image-container {
+  position: relative;
+  padding-bottom: 75%;
+  background: var(--color-neutral-100);
+  overflow: hidden;
+}
+
+.my-listing-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+
+.my-listing-card:hover .my-listing-image {
+  transform: scale(1.05);
+}
+
+.my-listing-no-image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--color-neutral-400);
+  font-size: var(--text-sm);
+}
+
+.my-listing-content {
+  padding: var(--spacing-md);
+}
+
+.my-listing-title-text {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-neutral-800);
+  margin-bottom: var(--spacing-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.my-listing-price {
+  font-size: var(--text-2xl);
+  font-weight: bold;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.my-listing-location {
+  font-size: var(--text-sm);
+  color: var(--color-neutral-500);
+  margin-bottom: var(--spacing-xs);
+}
+
+.my-listing-meta {
+  font-size: var(--text-sm);
+  color: var(--color-neutral-400);
+  margin-bottom: var(--spacing-sm);
+}
+
+.my-listing-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+@media (max-width: 768px) {
+  .my-listings-page {
+    padding: var(--spacing-md);
+  }
+  
+  .my-listings-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--spacing-md);
+  }
+}
+
+@media (max-width: 640px) {
+  .my-listings-grid {
+    grid-template-columns: 1fr;
+  }
+}
