@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Estado = require('../models/Estado');
 const Municipio = require('../models/Municipio');
+const Colonia = require('../models/Colonia');
 
 // @route   GET /api/locations/estados
 // @desc    Listar todos los estados
@@ -94,6 +95,60 @@ router.get('/municipios/:id', async (req, res) => {
       error: {
         message: 'Error al obtener municipio',
         code: 'MUNICIPIO_FETCH_ERROR'
+      }
+    });
+  }
+});
+
+// @route   GET /api/locations/colonias/cp/:codigoPostal
+// @desc    Obtener colonias por código postal
+// @access  Public
+router.get('/colonias/cp/:codigoPostal', async (req, res) => {
+  try {
+    const { codigoPostal } = req.params;
+
+    const colonias = await Colonia.find({ codigoPostal })
+      .populate('municipio', 'nombre')
+      .populate('estado', 'nombre codigo')
+      .sort({ nombre: 1 });
+
+    res.json({
+      success: true,
+      count: colonias.length,
+      data: colonias
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: {
+        message: 'Error al obtener colonias',
+        code: 'COLONIAS_FETCH_ERROR'
+      }
+    });
+  }
+});
+
+// @route   GET /api/locations/municipios/:id/colonias
+// @desc    Obtener colonias por municipio
+// @access  Public
+router.get('/municipios/:id/colonias', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const colonias = await Colonia.find({ municipio: id })
+      .sort({ nombre: 1 });
+
+    res.json({
+      success: true,
+      count: colonias.length,
+      data: colonias
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: {
+        message: 'Error al obtener colonias',
+        code: 'COLONIAS_FETCH_ERROR'
       }
     });
   }

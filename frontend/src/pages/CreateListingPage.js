@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useToast } from '../components/ToastContainer';
-import LocationSelector from '../components/LocationSelector';
+import PostalCodeSelector from '../components/PostalCodeSelector';
 import FormError from '../components/FormError';
 
 const CreateListingPage = () => {
@@ -13,10 +13,14 @@ const CreateListingPage = () => {
     titulo: '',
     descripcion: '',
     precio: '',
+    codigoPostal: '',
+    colonia: '',
     estado: '',
     municipio: '',
     imagenes: []
   });
+  
+  const [locationData, setLocationData] = useState(null);
   
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -38,28 +42,23 @@ const CreateListingPage = () => {
     setServerError('');
   };
 
-  const handleEstadoChange = (value) => {
+  const handleLocationChange = (data) => {
+    setLocationData(data);
     setFormData(prev => ({
       ...prev,
-      estado: value
+      codigoPostal: data.codigoPostal || '',
+      colonia: data.colonia || '',
+      estado: data.estado || '',
+      municipio: data.municipio || ''
     }));
-    if (errors.estado) {
+    
+    // Limpiar errores de ubicación
+    if (errors.codigoPostal || errors.colonia || errors.estado || errors.municipio) {
       setErrors(prev => ({
         ...prev,
-        estado: ''
-      }));
-    }
-    setServerError('');
-  };
-
-  const handleMunicipioChange = (value) => {
-    setFormData(prev => ({
-      ...prev,
-      municipio: value
-    }));
-    if (errors.municipio) {
-      setErrors(prev => ({
-        ...prev,
+        codigoPostal: '',
+        colonia: '',
+        estado: '',
         municipio: ''
       }));
     }
@@ -113,6 +112,16 @@ const CreateListingPage = () => {
       newErrors.precio = 'El precio es requerido';
     } else if (isNaN(formData.precio) || parseFloat(formData.precio) < 0) {
       newErrors.precio = 'El precio debe ser un número válido mayor o igual a 0';
+    }
+
+    if (!formData.codigoPostal) {
+      newErrors.codigoPostal = 'El código postal es requerido';
+    } else if (formData.codigoPostal.length !== 5) {
+      newErrors.codigoPostal = 'El código postal debe tener 5 dígitos';
+    }
+
+    if (!formData.colonia) {
+      newErrors.colonia = 'Selecciona una colonia';
     }
 
     if (!formData.estado) {
@@ -311,13 +320,10 @@ const CreateListingPage = () => {
             )}
           </div>
 
-          <LocationSelector
-            estadoValue={formData.estado}
-            municipioValue={formData.municipio}
-            onEstadoChange={handleEstadoChange}
-            onMunicipioChange={handleMunicipioChange}
-            errors={errors}
-            required={true}
+          <PostalCodeSelector
+            value={locationData}
+            onChange={handleLocationChange}
+            error={errors.codigoPostal || errors.colonia}
           />
 
           <div style={{ marginBottom: '1.5rem' }}>

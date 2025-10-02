@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/ToastContainer';
-import LocationSelector from '../components/LocationSelector';
+import PostalCodeSelector from '../components/PostalCodeSelector';
 import FormError from '../components/FormError';
 
 const RegisterPage = () => {
@@ -16,9 +16,13 @@ const RegisterPage = () => {
     confirmPassword: '',
     nombre: '',
     telefono: '',
+    codigoPostal: '',
+    colonia: '',
     estado: '',
     municipio: ''
   });
+  
+  const [locationData, setLocationData] = useState(null);
   
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -38,27 +42,23 @@ const RegisterPage = () => {
     }
   };
 
-  const handleEstadoChange = (value) => {
+  const handleLocationChange = (data) => {
+    setLocationData(data);
     setFormData(prev => ({
       ...prev,
-      estado: value
+      codigoPostal: data.codigoPostal || '',
+      colonia: data.colonia || '',
+      estado: data.estado || '',
+      municipio: data.municipio || ''
     }));
-    if (errors.estado) {
+    
+    // Limpiar errores de ubicación
+    if (errors.codigoPostal || errors.colonia || errors.estado || errors.municipio) {
       setErrors(prev => ({
         ...prev,
-        estado: ''
-      }));
-    }
-  };
-
-  const handleMunicipioChange = (value) => {
-    setFormData(prev => ({
-      ...prev,
-      municipio: value
-    }));
-    if (errors.municipio) {
-      setErrors(prev => ({
-        ...prev,
+        codigoPostal: '',
+        colonia: '',
+        estado: '',
         municipio: ''
       }));
     }
@@ -83,6 +83,16 @@ const RegisterPage = () => {
       newErrors.confirmPassword = 'Confirma tu contraseña';
     } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Las contraseñas no coinciden';
+    }
+
+    if (!formData.codigoPostal) {
+      newErrors.codigoPostal = 'El código postal es requerido';
+    } else if (formData.codigoPostal.length !== 5) {
+      newErrors.codigoPostal = 'El código postal debe tener 5 dígitos';
+    }
+
+    if (!formData.colonia) {
+      newErrors.colonia = 'Selecciona una colonia';
     }
 
     if (!formData.estado) {
@@ -298,13 +308,10 @@ const RegisterPage = () => {
               }}
             />
           </div>
-          <LocationSelector
-            estadoValue={formData.estado}
-            municipioValue={formData.municipio}
-            onEstadoChange={handleEstadoChange}
-            onMunicipioChange={handleMunicipioChange}
-            errors={errors}
-            required={true}
+          <PostalCodeSelector
+            value={locationData}
+            onChange={handleLocationChange}
+            error={errors.codigoPostal || errors.colonia}
           />
 
           <button

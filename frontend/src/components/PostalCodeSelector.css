@@ -1,0 +1,67 @@
+.postal-code-selector {
+  width: 100%;
+}
+
+.postal-code-selector .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.postal-code-selector label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.postal-code-selector input,
+.postal-code-selector select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.postal-code-selector input:focus,
+.postal-code-selector select:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.postal-code-selector input.error,
+.postal-code-selector select.error {
+  border-color: #dc3545;
+}
+
+.postal-code-selector .loading-text {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #007bff;
+}
+
+.postal-code-selector .error-text {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #dc3545;
+}
+
+.postal-code-selector .location-info {
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  margin-top: 1rem;
+}
+
+.postal-code-selector .location-info p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.postal-code-selector .location-info strong {
+  color: #333;
+  margin-right: 0.5rem;
+}

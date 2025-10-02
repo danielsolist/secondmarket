@@ -16,6 +16,15 @@ const UserSchema = new mongoose.Schema({
   },
   nombre: String,
   telefono: String,
+  codigoPostal: {
+    type: String,
+    required: true
+  },
+  colonia: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Colonia',
+    required: true
+  },
   estado: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Estado',

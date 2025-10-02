@@ -30,6 +30,15 @@ const ListingSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  codigoPostal: {
+    type: String,
+    required: true
+  },
+  colonia: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Colonia',
+    required: true
+  },
   estado: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Estado',
